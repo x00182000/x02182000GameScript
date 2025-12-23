@@ -217,22 +217,24 @@ local function checkAndBuySelected()
     
     -- Buy Traveling Merchant Items
     -- Auto-buys from whichever merchant currently has the selected item in stock
-    if playerData.TravelingMerchantStock then
-        for merchantName, merchantData in pairs(playerData.TravelingMerchantStock) do
-            if type(merchantData) == "table" and merchantData.Stocks then
-                for itemName, itemData in pairs(merchantData.Stocks) do
-                    -- Check if this item is selected (regardless of which merchant it's from)
-                    if isItemSelected("TravelingMerchant", itemName) and itemData.Stock and itemData.Stock > 0 then
-                        local stockCount = itemData.Stock
-                        for i = 1, stockCount do
-                            BuyTravelingMerchantShopStock:FireServer(itemName)
-                            purchasesMade = purchasesMade + 1
-                        end
+
+if playerData.TravelingMerchantStock then
+    for _, merchantData in pairs(playerData.TravelingMerchantStock) do
+        if type(merchantData) == "table" and merchantData.Stocks then
+            for itemName, itemData in pairs(merchantData.Stocks) do
+                if isItemSelected("TravelingMerchant", itemName)
+                and itemData.Stock
+                and itemData.Stock > 0 then
+                    for i = 1, itemData.Stock do
+                        BuyTravelingMerchantShopStock:FireServer(itemName)
+                        purchasesMade += 1
                     end
                 end
             end
         end
     end
+end
+
     
     return purchasesMade, failedPurchases
 end
@@ -247,12 +249,9 @@ local function setEnabled(enabled)
             if currentTime - lastCheckTime >= CHECK_INTERVAL then
                 lastCheckTime = currentTime
                 
-                local success, purchases, failures = pcall(function()
-                    return checkAndBuySelected()
-                end)
-                
-                if not success then
-                    warn("❌ [AUTO-BUY] Error:", purchases)
+                local ok, err = pcall(checkAndBuySelected)
+                if not ok then
+                    warn("❌ [AUTO-BUY ERROR]:", err)
                 end
             end
         end)
@@ -380,26 +379,28 @@ local function getDropdownOptions(items)
 end
 
 local function handleSelection(category, selected)
-    selectedItems[category] = {}
-    
-    local allSelected = false
+    selectedItems[category] = selectedItems[category] or {}
+
+    if #selected == 0 then
+        selectedItems[category] = {}
+        return
+    end
+
     for _, option in ipairs(selected) do
         if option.Title == "All" then
-            allSelected = true
-            break
+            selectedItems[category] = { "All" }
+            return
         end
     end
-    
-    if allSelected then
-        table.insert(selectedItems[category], "All")
-        print(string.format("[%s] Selected ALL items for auto-buy", category))
-    else
-        for _, option in ipairs(selected) do
-            table.insert(selectedItems[category], option.Title)
-            print(string.format("[%s] Selected for auto-buy: %s", category, option.Title))
-        end
+
+    local newList = {}
+    for _, option in ipairs(selected) do
+        table.insert(newList, option.Title)
     end
+
+    selectedItems[category] = newList
 end
+
 
 local function resolveIconFromAllSources(itemName)
     local seedInfo = SeedData[itemName]
