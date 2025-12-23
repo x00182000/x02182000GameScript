@@ -216,10 +216,12 @@ local function checkAndBuySelected()
     end
     
     -- Buy Traveling Merchant Items
+    -- Auto-buys from whichever merchant currently has the selected item in stock
     if playerData.TravelingMerchantStock then
         for merchantName, merchantData in pairs(playerData.TravelingMerchantStock) do
             if type(merchantData) == "table" and merchantData.Stocks then
                 for itemName, itemData in pairs(merchantData.Stocks) do
+                    -- Check if this item is selected (regardless of which merchant it's from)
                     if isItemSelected("TravelingMerchant", itemName) and itemData.Stock and itemData.Stock > 0 then
                         local stockCount = itemData.Stock
                         for i = 1, stockCount do
@@ -390,11 +392,11 @@ local function handleSelection(category, selected)
     
     if allSelected then
         table.insert(selectedItems[category], "All")
-        --print(string.format("[%s] Selected ALL items for auto-buy", category))
+        print(string.format("[%s] Selected ALL items for auto-buy", category))
     else
         for _, option in ipairs(selected) do
             table.insert(selectedItems[category], option.Title)
-            --print(string.format("[%s] Selected for auto-buy: %s", category, option.Title))
+            print(string.format("[%s] Selected for auto-buy: %s", category, option.Title))
         end
     end
 end
