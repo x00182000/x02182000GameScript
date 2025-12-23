@@ -28,7 +28,7 @@ local function safeLoad(url)
 end
 
 -- Load Modules
-local ShopAutoBuy = safeLoad("http://192.168.18.40:8000/ShopAutoBuy.lua")
+local ShopAutoBuy = safeLoad("https://raw.githubusercontent.com/x00182000/x02182000GameScript/main/Grow%20a%20Garden/functions/ShopAutoBuy.lua")
 
 local MarketplaceService = game:GetService("MarketplaceService")
 local gameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
