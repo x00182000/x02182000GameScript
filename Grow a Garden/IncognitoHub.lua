@@ -12,10 +12,33 @@ do
     end
 end
 
+local function safeLoad(url)
+    local success, result = pcall(function()
+        local src = game:HttpGet(url)
+        local chunk = loadstring(src)
+        return chunk()
+    end)
+
+    if not success then
+        warn("Failed to load: " .. url .. " | Error: " .. tostring(result))
+        return {}
+    end
+
+    return result
+end
+
+-- Load Modules
+local ShopAutoBuy = safeLoad("http://192.168.18.40:8000/ShopAutoBuy.lua")
+
+local MarketplaceService = game:GetService("MarketplaceService")
+local gameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
+
+-- Create the main UI window with WindUI
 local Window = WindUI:CreateWindow({
-    Title = "Incognito Hub",
+    Title = "Incognito Hub | " .. gameName,
     Icon = "hat-glasses",
-    Folder = "MySuperHub",
+    Author = "by Sitsiritsit alibangbang",
+    Folder = "IncognitoHub",
     NewElements = true,
     Size = UDim2.fromOffset(850, 460),
     MinSize = Vector2.new(560, 350),
@@ -29,52 +52,47 @@ local Window = WindUI:CreateWindow({
     ScrollBarEnabled = false,
     Topbar = {
         Height = 50,
-        ButtonsType = "Default", -- Default or Mac
+        ButtonsType = "Default",
     },
     OpenButton = {
-        Title = "Open Incognito Hub", -- can be changed
-        CornerRadius = UDim.new(1,0), -- fully rounded
-        StrokeThickness = 3, -- removing outline
-        Enabled = true, -- enable or disable openbutton
+        Title = "Open Incognito Hub",
+        CornerRadius = UDim.new(1,0),
+        StrokeThickness = 3,
+        Enabled = true,
         Draggable = true,
         OnlyMobile = true,
         
-        Color = ColorSequence.new( -- gradient
+        Color = ColorSequence.new(
             Color3.fromHex("#30FF6A"), 
             Color3.fromHex("#e7ff2f")
         )
     },
 })
+
 Window:SetToggleKey(Enum.KeyCode.H)
+
 Window:Tag({
     Title = "v1.1.0",
     Color = Color3.fromHex("#1c1c1c")
 })
 
 local Colors = {
-    -- Original Set
     Purple    = Color3.fromHex("#7775F2"),
     Yellow    = Color3.fromHex("#ECA201"),
     Green     = Color3.fromHex("#10C550"),
     Grey      = Color3.fromHex("#83889E"),
     Blue      = Color3.fromHex("#257AF7"),
     Red       = Color3.fromHex("#EF4F1D"),
-
-    -- Vibrant Accents
     Teal      = Color3.fromHex("#12B5B0"),
     Orange    = Color3.fromHex("#F7821B"),
     Pink      = Color3.fromHex("#E853A2"),
     Cyan      = Color3.fromHex("#00B7FF"),
     Indigo    = Color3.fromHex("#4B4DED"),
-
-    -- Soft & Pastel
     Mint      = Color3.fromHex("#4ADE80"),
     Sky       = Color3.fromHex("#7DD3FC"),
     Rose      = Color3.fromHex("#FB7185"),
     Lavender  = Color3.fromHex("#C084FC"),
     Peach     = Color3.fromHex("#FDBA74"),
-
-    -- Utility & Neutrals
     Gold      = Color3.fromHex("#FFD700"),
     Crimson   = Color3.fromHex("#991B1B"),
     Slate     = Color3.fromHex("#475569"),
@@ -83,13 +101,27 @@ local Colors = {
     Black     = Color3.fromHex("#1A1C1E")
 }
 
+-- Create Tabs
 local Tabs = {
-    Farm = Window:Tab({ Title = "Farm", Icon = "tractor", IconColor = Colors.Green, IconShape = "Square"}),
-	Shop = Window:Tab({ Title = "Shop", Icon = "shopping-bag", IconColor = Colors.Red, IconShape = "Square"}),
-	Pet = Window:Tab({ Title = "Pet", Icon = "paw-print", IconColor = Colors.Yellow, IconShape = "Square"}),
-	Egg = Window:Tab({ Title = "Egg Hatching", Icon = "egg", IconColor = Colors.Grey, IconShape = "Square"}),
-	Tools = Window:Tab({ Title = "Tools", Icon = "wrench", IconColor = Colors.Blue, IconShape = "Square"}),
-	Crafting = Window:Tab({ Title = "Crafting & Cooking", Icon = "pickaxe", IconColor = Colors.Purple, IconShape = "Square"}),
-    Misc = Window:Tab({ Title = "Misc", Icon = "layout-dashboard", IconColor = Colors.Indigo, IconShape = "Square"}),
-    Webhook = Window:Tab({ Title = "Webhook", Icon = "webhook", IconColor = Colors.Teal, IconShape = "Square"})
+    Farm = Window:Tab({ 
+        Title = "Farm", 
+        Icon = "tractor", 
+        IconColor = Colors.Slate, 
+        IconShape = "Square"
+    }),
+    Shop = Window:Tab({ 
+        Title = "Shop", 
+        Icon = "shopping-basket", 
+        IconColor = Colors.Slate, 
+        IconShape = "Square"
+    }),
 }
+
+-- Initialize Shop Auto-Buy Module
+if ShopAutoBuy and type(ShopAutoBuy.Initialize) == "function" then
+    ShopAutoBuy:Initialize(WindUI, Tabs.Shop)
+    print("✅ Shop Auto-Buy Module Initialized")
+else
+    warn("❌ Failed to load ShopAutoBuy module")
+end
+
